@@ -1,11 +1,13 @@
 import { api, authorLink, escapeHtml, formatDate } from "../api.js";
 import { mountAuthSlot, googleLoginUrl } from "../auth-ui.js";
+import { mountCommandPalette } from "../palette.js";
 
 const params = new URLSearchParams(window.location.search);
 const slug = params.get("c") || "";
 
 async function main() {
   const user = await mountAuthSlot();
+  await mountCommandPalette(user);
   const status = document.getElementById("forum-status");
   const list = document.getElementById("thread-list");
 
@@ -48,7 +50,7 @@ async function main() {
         <a href="/forum/thread.html?id=${encodeURIComponent(t.id)}">
           <span class="forum-thread-title">${escapeHtml(t.title)}</span>
           <span class="forum-thread-meta">
-            ${authorLink(t.author)} · ${t.replyCount} ${t.replyCount === 1 ? "reply" : "replies"} · ${formatDate(t.updatedAt)}
+            ${authorLink(t.author)} · ${t.score || 0} pts · ${t.replyCount} ${t.replyCount === 1 ? "reply" : "replies"} · ${formatDate(t.updatedAt)}
           </span>
         </a>
       </li>`

@@ -9,7 +9,14 @@ import {
   getProfileFromToken,
   sessionCookieOptions,
 } from "./session.js";
-import { privateProfile, validateUsername } from "./privacy.js";
+import {
+  privateProfile,
+  validateUsername,
+  normalizeMcUuid,
+  validateMcUsername,
+  validateDiscordHandle,
+  validateBannerColor,
+} from "./privacy.js";
 
 const OAUTH_STATE_COOKIE = "usc_oauth_state";
 const OAUTH_VERIFIER_COOKIE = "usc_oauth_verifier";
@@ -235,15 +242,53 @@ export function registerAuthRoutes(app) {
       return c.json({ error: "Username is already taken" }, 409);
     }
 
+    const mcUsername =
+      typeof body.mcUsername === "string" ? body.mcUsername.trim() : profile.mc_username;
+    const mcNameErr = validateMcUsername(mcUsername);
+    if (mcNameErr) return c.json({ error: mcNameErr }, 400);
+    const mcUuidRaw =
+      typeof body.mcUuid === "string" ? body.mcUuid.trim() : profile.mc_uuid;
+    let mcUuid = profile.mc_uuid;
+    if (body.mcUuid !== undefined) {
+      if (!mcUuidRaw) mcUuid = null;
+      else {
+        mcUuid = normalizeMcUuid(mcUuidRaw);
+        if (!mcUuid) return c.json({ error: "Invalid Minecraft UUID" }, 400);
+      }
+    }
+    const bannerColor = validateBannerColor(
+      body.bannerColor !== undefined ? body.bannerColor : profile.banner_color
+    );
+    if (bannerColor === null) return c.json({ error: "Invalid banner color" }, 400);
+    const discordHandle =
+      body.discordHandle !== undefined
+        ? String(body.discordHandle || "").trim() || null
+        : profile.discord_handle;
+    const discordErr = validateDiscordHandle(discordHandle);
+    if (discordErr) return c.json({ error: discordErr }, 400);
+
     const { rows } = await query(
       `UPDATE profiles
        SET username = $2,
            hide_google_name = $3,
            email_public = $4,
+           mc_username = $5,
+           mc_uuid = $6,
+           banner_color = $7,
+           discord_handle = $8,
            updated_at = NOW()
        WHERE id = $1
        RETURNING *`,
-      [profile.id, username, hideGoogleName, emailPublic]
+      [
+        profile.id,
+        username,
+        hideGoogleName,
+        emailPublic,
+        mcUsername || null,
+        mcUuid,
+        bannerColor,
+        discordHandle,
+      ]
     );
     return c.json({ user: privateProfile(rows[0]) });
   });

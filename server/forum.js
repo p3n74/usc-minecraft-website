@@ -15,7 +15,10 @@ function authorSelect(alias = "p") {
     ${alias}.google_display_name AS author_google_display_name,
     ${alias}.hide_google_name AS author_hide_google_name,
     ${alias}.email_public AS author_email_public,
-    ${alias}.email AS author_email`;
+    ${alias}.email AS author_email,
+    ${alias}.mc_username AS author_mc_username,
+    ${alias}.mc_uuid AS author_mc_uuid,
+    ${alias}.banner_color AS author_banner_color`;
 }
 
 function mapAuthor(row) {
@@ -27,6 +30,9 @@ function mapAuthor(row) {
       hide_google_name: row.author_hide_google_name,
       email_public: row.author_email_public,
       email: row.author_email,
+      mc_username: row.author_mc_username,
+      mc_uuid: row.author_mc_uuid,
+      banner_color: row.author_banner_color,
     },
     { includeEmail: true }
   );
@@ -66,13 +72,17 @@ export function registerForumRoutes(app) {
     const { rows } = await query(
       `SELECT t.id, t.title, t.created_at, t.updated_at,
               COUNT(p.id)::int AS reply_count,
+              COALESCE((
+                SELECT SUM(v.value)::int FROM votes v
+                WHERE v.target_type = 'thread' AND v.target_id = t.id
+              ), 0) AS score,
               ${authorSelect("a")}
        FROM threads t
        JOIN profiles a ON a.id = t.author_id
        LEFT JOIN posts p ON p.thread_id = t.id AND p.is_hidden = FALSE
        WHERE t.category_id = $1 AND t.is_hidden = FALSE
        GROUP BY t.id, a.id
-       ORDER BY t.updated_at DESC
+       ORDER BY score DESC, t.updated_at DESC
        LIMIT 100`,
       [cat.rows[0].id]
     );
@@ -91,6 +101,7 @@ export function registerForumRoutes(app) {
         updatedAt: r.updated_at,
         replyCount: Math.max(0, r.reply_count - 1),
         postCount: r.reply_count,
+        score: r.score,
         author: mapAuthor(r),
       })),
     });
@@ -98,9 +109,14 @@ export function registerForumRoutes(app) {
 
   app.get("/api/threads/:id", async (c) => {
     const id = c.req.param("id");
+    const viewer = await getCurrentProfile(c);
     const threadRes = await query(
       `SELECT t.id, t.title, t.created_at, t.updated_at, t.category_id,
               c.slug AS category_slug, c.title AS category_title,
+              COALESCE((
+                SELECT SUM(v.value)::int FROM votes v
+                WHERE v.target_type = 'thread' AND v.target_id = t.id
+              ), 0) AS score,
               ${authorSelect("a")}
        FROM threads t
        JOIN categories c ON c.id = t.category_id
@@ -111,15 +127,40 @@ export function registerForumRoutes(app) {
     if (!threadRes.rows[0]) return c.json({ error: "Thread not found" }, 404);
     const t = threadRes.rows[0];
 
+    let myThreadVote = 0;
+    if (viewer) {
+      const vr = await query(
+        `SELECT value FROM votes WHERE profile_id = $1 AND target_type = 'thread' AND target_id = $2`,
+        [viewer.id, id]
+      );
+      myThreadVote = vr.rows[0]?.value || 0;
+    }
+
     const postsRes = await query(
-      `SELECT p.id, p.body, p.created_at,
+      `SELECT p.id, p.body, p.created_at, p.parent_id,
+              COALESCE(SUM(v.value), 0)::int AS score,
+              COUNT(*) FILTER (WHERE v.value = 1)::int AS ups,
+              COUNT(*) FILTER (WHERE v.value = -1)::int AS downs,
               ${authorSelect("a")}
        FROM posts p
        JOIN profiles a ON a.id = p.author_id
+       LEFT JOIN votes v ON v.target_type = 'post' AND v.target_id = p.id
        WHERE p.thread_id = $1 AND p.is_hidden = FALSE
+       GROUP BY p.id, a.id
        ORDER BY p.created_at ASC`,
       [id]
     );
+
+    let myVotes = new Map();
+    if (viewer && postsRes.rows.length) {
+      const ids = postsRes.rows.map((p) => p.id);
+      const mine = await query(
+        `SELECT target_id, value FROM votes
+         WHERE profile_id = $1 AND target_type = 'post' AND target_id = ANY($2::uuid[])`,
+        [viewer.id, ids]
+      );
+      myVotes = new Map(mine.rows.map((r) => [r.target_id, r.value]));
+    }
 
     return c.json({
       thread: {
@@ -127,6 +168,8 @@ export function registerForumRoutes(app) {
         title: t.title,
         createdAt: t.created_at,
         updatedAt: t.updated_at,
+        score: t.score,
+        myVote: myThreadVote,
         category: {
           id: t.category_id,
           slug: t.category_slug,
@@ -136,8 +179,13 @@ export function registerForumRoutes(app) {
       },
       posts: postsRes.rows.map((p) => ({
         id: p.id,
+        parentId: p.parent_id,
         body: p.body,
         createdAt: p.created_at,
+        score: p.score,
+        ups: p.ups,
+        downs: p.downs,
+        myVote: myVotes.get(p.id) || 0,
         author: mapAuthor(p),
       })),
     });
@@ -203,6 +251,7 @@ export function registerForumRoutes(app) {
       const threadId = c.req.param("id");
       const body = await c.req.json().catch(() => ({}));
       const content = String(body.body || "").trim();
+      const parentId = body.parentId || null;
       if (content.length < 1 || content.length > BODY_MAX) {
         return c.json({ error: `Body must be 1–${BODY_MAX} characters` }, 400);
       }
@@ -213,14 +262,22 @@ export function registerForumRoutes(app) {
       );
       if (!thread.rows[0]) return c.json({ error: "Thread not found" }, 404);
 
+      if (parentId) {
+        const parent = await query(
+          `SELECT id FROM posts WHERE id = $1 AND thread_id = $2 AND is_hidden = FALSE`,
+          [parentId, threadId]
+        );
+        if (!parent.rows[0]) return c.json({ error: "Parent comment not found" }, 404);
+      }
+
       const client = await getPool().connect();
       try {
         await client.query("BEGIN");
         const postIns = await client.query(
-          `INSERT INTO posts (thread_id, author_id, body)
-           VALUES ($1, $2, $3)
-           RETURNING id, created_at`,
-          [threadId, profile.id, content]
+          `INSERT INTO posts (thread_id, author_id, body, parent_id)
+           VALUES ($1, $2, $3, $4)
+           RETURNING id, created_at, parent_id`,
+          [threadId, profile.id, content, parentId]
         );
         await client.query(
           `UPDATE threads SET updated_at = NOW() WHERE id = $1`,
@@ -230,6 +287,7 @@ export function registerForumRoutes(app) {
         return c.json(
           {
             id: postIns.rows[0].id,
+            parentId: postIns.rows[0].parent_id,
             createdAt: postIns.rows[0].created_at,
           },
           201
@@ -240,6 +298,68 @@ export function registerForumRoutes(app) {
       } finally {
         client.release();
       }
+    }
+  );
+
+  app.put(
+    "/api/votes/:type/:id",
+    requireAuth(),
+    requireCompletedProfile(),
+    async (c) => {
+      const profile = c.get("profile");
+      const type = c.req.param("type");
+      const targetId = c.req.param("id");
+      if (type !== "post" && type !== "thread") {
+        return c.json({ error: "Invalid vote target" }, 400);
+      }
+      const body = await c.req.json().catch(() => ({}));
+      let value = Number(body.value);
+      if (![ -1, 0, 1 ].includes(value)) {
+        return c.json({ error: "Vote must be -1, 0, or 1" }, 400);
+      }
+
+      if (type === "thread") {
+        const exists = await query(
+          `SELECT id FROM threads WHERE id = $1 AND is_hidden = FALSE`,
+          [targetId]
+        );
+        if (!exists.rows[0]) return c.json({ error: "Thread not found" }, 404);
+      } else {
+        const exists = await query(
+          `SELECT id FROM posts WHERE id = $1 AND is_hidden = FALSE`,
+          [targetId]
+        );
+        if (!exists.rows[0]) return c.json({ error: "Post not found" }, 404);
+      }
+
+      if (value === 0) {
+        await query(
+          `DELETE FROM votes WHERE profile_id = $1 AND target_type = $2 AND target_id = $3`,
+          [profile.id, type, targetId]
+        );
+      } else {
+        await query(
+          `INSERT INTO votes (profile_id, target_type, target_id, value)
+           VALUES ($1, $2, $3, $4)
+           ON CONFLICT (profile_id, target_type, target_id)
+           DO UPDATE SET value = EXCLUDED.value`,
+          [profile.id, type, targetId, value]
+        );
+      }
+
+      const sum = await query(
+        `SELECT COALESCE(SUM(value), 0)::int AS score,
+                COUNT(*) FILTER (WHERE value = 1)::int AS ups,
+                COUNT(*) FILTER (WHERE value = -1)::int AS downs
+         FROM votes WHERE target_type = $1 AND target_id = $2`,
+        [type, targetId]
+      );
+      return c.json({
+        score: sum.rows[0].score,
+        ups: sum.rows[0].ups,
+        downs: sum.rows[0].downs,
+        myVote: value,
+      });
     }
   );
 
@@ -257,12 +377,16 @@ export function registerForumRoutes(app) {
     return c.json({
       user: {
         ...author,
+        mcUsername: rows[0].mc_username || null,
+        mcUuid: rows[0].mc_uuid || null,
+        bannerColor: rows[0].banner_color || "#2d641c",
         ...(isSelf
           ? {
               email: rows[0].email,
               googleDisplayName: rows[0].google_display_name,
               hideGoogleName: rows[0].hide_google_name,
               emailPublic: rows[0].email_public,
+              discordHandle: rows[0].discord_handle,
             }
           : {}),
       },

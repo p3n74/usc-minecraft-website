@@ -58,6 +58,18 @@ assert(validateUsername("ab") !== null, "rejects short username");
 assert(validateUsername("admin") !== null, "rejects reserved");
 assert(validateUsername("Cool_Player1") === null, "accepts valid username");
 
+{
+  const pub = publicAuthor({
+    ...base,
+    discord_handle: "secret_disc",
+    mc_username: "Steve",
+    mc_uuid: "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
+  });
+  assert(!("discordHandle" in pub), "discord omitted from public author");
+  assert(!JSON.stringify(pub).includes("secret_disc"), "discord handle not leaked");
+  assert(pub.mcUsername === "Steve", "minecraft name is public");
+}
+
 if (process.exitCode) {
   console.error("Privacy tests failed");
   process.exit(1);

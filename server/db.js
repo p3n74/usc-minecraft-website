@@ -1,5 +1,5 @@
 import pg from "pg";
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -28,6 +28,11 @@ export async function query(text, params) {
 }
 
 export async function migrate() {
-  const sql = readFileSync(join(__dirname, "migrations", "001_init.sql"), "utf8");
-  await query(sql);
+  const dir = join(__dirname, "migrations");
+  const files = readdirSync(dir)
+    .filter((f) => f.endsWith(".sql"))
+    .sort();
+  for (const file of files) {
+    await query(readFileSync(join(dir, file), "utf8"));
+  }
 }

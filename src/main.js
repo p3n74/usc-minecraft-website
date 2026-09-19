@@ -1,3 +1,5 @@
+import { mountCommandPalette } from "./forum/palette.js";
+
 const DEFAULTS = {
   server: "mc-direct.citadel-codex.com",
   bedrock: "bedrock.citadel-codex.com",
@@ -41,7 +43,6 @@ function initConsent() {
     return;
   }
 
-  // Never persist consent — clear any old saved state and require a check each visit
   try {
     localStorage.removeItem("usc_policy_consent_v1");
   } catch {
@@ -105,6 +106,18 @@ async function copyText(text) {
   document.body.removeChild(area);
 }
 
+async function copyJoinAddress({ kind = "java", reveal = false } = {}) {
+  const { server, bedrock } = readConfig();
+  const text = kind === "bedrock" ? bedrock : server;
+  await copyText(String(text).trim());
+  const unlocked = document.getElementById("join-unlocked");
+  if (reveal && unlocked && !unlocked.hidden) {
+    showToast("Address copied");
+  } else {
+    showToast("Copied. Agree below to see it.");
+  }
+}
+
 document.querySelectorAll("[data-copy]").forEach((button) => {
   button.addEventListener("click", async () => {
     const targetId = button.getAttribute("data-copy");
@@ -128,4 +141,72 @@ document.querySelectorAll("[data-copy]").forEach((button) => {
   });
 });
 
+document.getElementById("hero-copy")?.addEventListener("click", async () => {
+  const btn = document.getElementById("hero-copy");
+  try {
+    await copyJoinAddress({ kind: "java", reveal: false });
+    btn.classList.add("is-copied");
+    const prev = btn.textContent;
+    btn.textContent = "Copied!";
+    setTimeout(() => {
+      btn.classList.remove("is-copied");
+      btn.textContent = prev;
+    }, 1600);
+  } catch {
+    showToast("Could not copy");
+  }
+});
+
+async function initStatusChip() {
+  const chip = document.getElementById("status-chip");
+  if (!chip) return;
+  const dot = document.getElementById("status-dot");
+  const players = document.getElementById("status-players");
+  const version = document.getElementById("status-version");
+
+  async function refresh() {
+    try {
+      const res = await fetch("/api/status", { credentials: "include" });
+      if (!res.ok) throw new Error("status");
+      const data = await res.json();
+      dot.className = `status-dot ${data.online ? "is-online" : "is-offline"}`;
+      players.textContent = data.online
+        ? `${data.players?.online ?? 0} / ${data.players?.max ?? 0} online`
+        : "World offline";
+      version.textContent = data.version || "";
+    } catch {
+      dot.className = "status-dot is-unknown";
+      players.textContent = "Status unavailable";
+      version.textContent = "";
+    }
+  }
+
+  refresh();
+  setInterval(refresh, 30000);
+}
+
+function initReveal() {
+  const nodes = document.querySelectorAll(".reveal");
+  if (!nodes.length) return;
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    nodes.forEach((n) => n.classList.add("is-in"));
+    return;
+  }
+  const io = new IntersectionObserver(
+    (entries) => {
+      for (const e of entries) {
+        if (e.isIntersecting) {
+          e.target.classList.add("is-in");
+          io.unobserve(e.target);
+        }
+      }
+    },
+    { threshold: 0.12 }
+  );
+  nodes.forEach((n) => io.observe(n));
+}
+
 initConsent();
+initStatusChip();
+initReveal();
+mountCommandPalette();

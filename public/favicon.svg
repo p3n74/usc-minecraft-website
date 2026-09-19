@@ -1,7 +1,15 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
-  <rect width="32" height="32" fill="#121212"/>
-  <rect x="4" y="4" width="24" height="24" fill="#3c8527"/>
-  <rect x="4" y="4" width="12" height="12" fill="#4f9c36"/>
-  <rect x="16" y="16" width="12" height="12" fill="#2d641c"/>
-  <rect x="10" y="10" width="12" height="12" fill="#8b6b4a"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <circle cx="32" cy="32" r="32" fill="#d4b45a"/>
+  <circle cx="32" cy="32" r="29.5" fill="#f4ead0"/>
+  <circle cx="32" cy="32" r="27.6" fill="#1c2026"/>
+  <g transform="rotate(38 44 22)" fill="#d4b45a">
+    <rect x="42.2" y="16" width="4.1" height="22" rx="1.15"/>
+    <path d="M35.8 14.4h16.8c1.2 0 2 1.4 1.5 2.6L51.8 21H38.6l-3.5-3.4c-.7-1.1.1-3.2 1.2-3.2z"/>
+  </g>
+  <polygon points="32,16 50,25.4 32,34.8 14,25.4" fill="#3d8c27"/>
+  <polygon points="32,16 41,20.7 32,25.4 23,20.7" fill="#6dcc45"/>
+  <polygon points="41,20.7 50,25.4 41,30.1 32,25.4" fill="#4aa32e"/>
+  <polygon points="32,34.8 50,25.4 50,41.2 32,50.6" fill="#5a3a24"/>
+  <polygon points="32,34.8 14,25.4 14,41.2 32,50.6" fill="#8b6240"/>
+  <text x="32" y="58.5" text-anchor="middle" font-family="Arial Black, Impact, sans-serif" font-size="8.5" font-weight="800" fill="#d4b45a" letter-spacing="1.2">USC</text>
 </svg>

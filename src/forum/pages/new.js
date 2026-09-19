@@ -1,11 +1,13 @@
 import { api, googleLoginUrl } from "../api.js";
 import { mountAuthSlot } from "../auth-ui.js";
+import { mountCommandPalette } from "../palette.js";
 
 const params = new URLSearchParams(window.location.search);
 const preset = params.get("c") || "";
 
 async function main() {
   const user = await mountAuthSlot();
+  await mountCommandPalette(user);
   const status = document.getElementById("forum-status");
   const form = document.getElementById("new-thread-form");
   const select = document.getElementById("thread-category");

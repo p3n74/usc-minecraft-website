@@ -16,6 +16,10 @@ export function publicAuthor(row, opts = {}) {
     username: row.username || null,
   };
 
+  if (row.mc_username) out.mcUsername = row.mc_username;
+  if (row.mc_uuid) out.mcUuid = row.mc_uuid;
+  if (row.banner_color) out.bannerColor = row.banner_color;
+
   if (opts.includeEmail && row.email_public && row.email) {
     out.email = row.email;
   }
@@ -37,6 +41,10 @@ export function privateProfile(row) {
     hideGoogleName: row.hide_google_name,
     emailPublic: row.email_public,
     profileCompleted: row.profile_completed,
+    mcUsername: row.mc_username || null,
+    mcUuid: row.mc_uuid || null,
+    bannerColor: row.banner_color || "#2d641c",
+    discordHandle: row.discord_handle || null,
     displayName: row.hide_google_name
       ? row.username || "Player"
       : row.google_display_name || row.username || "Player",
@@ -66,6 +74,35 @@ export function validateUsername(username) {
     return "That username is reserved";
   }
   return null;
+}
+
+export function normalizeMcUuid(raw) {
+  if (!raw) return null;
+  const hex = String(raw).replace(/-/g, "").toLowerCase();
+  if (!/^[0-9a-f]{32}$/.test(hex)) return null;
+  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
+}
+
+export function validateMcUsername(name) {
+  if (!name) return null;
+  if (!/^[A-Za-z0-9_]{1,16}$/.test(name)) {
+    return "Minecraft username must be 1–16 letters, numbers, or underscore";
+  }
+  return null;
+}
+
+export function validateDiscordHandle(handle) {
+  if (!handle) return null;
+  if (!/^[a-zA-Z0-9._]{2,32}$/.test(handle)) {
+    return "Discord handle must be 2–32 letters, numbers, dots, or underscores";
+  }
+  return null;
+}
+
+export function validateBannerColor(color) {
+  if (!color) return "#2d641c";
+  if (!/^#[0-9a-fA-F]{6}$/.test(color)) return null;
+  return color.toLowerCase();
 }
 
 export function escapeHtml(text) {

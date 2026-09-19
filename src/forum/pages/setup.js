@@ -1,5 +1,6 @@
 import { api, googleLoginUrl } from "../api.js";
 import { mountAuthSlot } from "../auth-ui.js";
+import { mountCommandPalette } from "../palette.js";
 
 async function main() {
   const params = new URLSearchParams(window.location.search);
@@ -17,6 +18,8 @@ async function main() {
   } catch {
     user = null;
   }
+
+  await mountCommandPalette(user);
 
   if (!user) {
     document.getElementById("setup-signin").hidden = false;

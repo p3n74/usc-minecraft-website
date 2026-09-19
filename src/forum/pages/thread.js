@@ -1,13 +1,31 @@
-import { api, authorLink, escapeHtml, formatDate, googleLoginUrl } from "../api.js";
+import { api, authorLink, formatDate, googleLoginUrl } from "../api.js";
 import { mountAuthSlot } from "../auth-ui.js";
+import { mountCommandPalette } from "../palette.js";
+import {
+  buildCommentTree,
+  sortTree,
+  renderCommentTree,
+  bindThreadComments,
+} from "../comments.js";
+import { applyVote, nextVote, paintVote } from "../votes.js";
 
 const params = new URLSearchParams(window.location.search);
 const id = params.get("id") || "";
+let posts = [];
+let user = null;
+let sortMode = localStorage.getItem("usc_comment_sort") || "top";
+
+function redraw() {
+  const tree = sortTree(buildCommentTree(posts), sortMode);
+  renderCommentTree(document.getElementById("comment-tree"), tree, {
+    canReply: Boolean(user?.profileCompleted),
+  });
+}
 
 async function main() {
-  const user = await mountAuthSlot();
+  user = await mountAuthSlot();
+  await mountCommandPalette(user);
   const status = document.getElementById("forum-status");
-  const list = document.getElementById("post-list");
 
   if (!id) {
     status.textContent = "Missing thread.";
@@ -18,6 +36,7 @@ async function main() {
   try {
     const data = await api(`/api/threads/${encodeURIComponent(id)}`);
     const t = data.thread;
+    posts = data.posts || [];
     document.getElementById("thread-title").textContent = t.title;
     document.title = `${t.title} — USC Minecraft Forum`;
     const crumb = document.getElementById("crumb-cat");
@@ -26,20 +45,61 @@ async function main() {
     document.getElementById("thread-meta").innerHTML =
       `${authorLink(t.author)} · started ${formatDate(t.createdAt)}`;
 
-    list.innerHTML = data.posts
-      .map(
-        (p) => `
-      <li class="forum-post panel">
-        <header class="forum-post-head">
-          ${authorLink(p.author)}
-          <time datetime="${escapeHtml(p.createdAt)}">${formatDate(p.createdAt)}</time>
-        </header>
-        <div class="forum-post-body">${escapeHtml(p.body).replace(/\n/g, "<br>")}</div>
-      </li>`
-      )
-      .join("");
+    const tVote = document.getElementById("thread-vote");
+    if (tVote) {
+      tVote.dataset.id = t.id;
+      paintVote(tVote, { score: t.score || 0, myVote: t.myVote || 0 });
+      tVote.querySelectorAll(".vote-btn").forEach((b) => {
+        b.disabled = !user?.profileCompleted;
+        b.dataset.id = t.id;
+      });
+    }
 
+    document.querySelectorAll(".forum-sort-btn").forEach((btn) => {
+      const on = btn.dataset.sort === sortMode;
+      btn.classList.toggle("is-active", on);
+      btn.setAttribute("aria-selected", String(on));
+      btn.addEventListener("click", () => {
+        sortMode = btn.dataset.sort;
+        localStorage.setItem("usc_comment_sort", sortMode);
+        document.querySelectorAll(".forum-sort-btn").forEach((b) => {
+          const active = b.dataset.sort === sortMode;
+          b.classList.toggle("is-active", active);
+          b.setAttribute("aria-selected", String(active));
+        });
+        redraw();
+      });
+    });
+
+    redraw();
     status.textContent = "";
+
+    bindThreadComments(document.getElementById("comment-tree"), {
+      canVote: Boolean(user?.profileCompleted),
+      onReply: async (parentId, body) => {
+        await api(`/api/threads/${encodeURIComponent(id)}/replies`, {
+          method: "POST",
+          body: JSON.stringify({ body, parentId }),
+        });
+        window.location.reload();
+      },
+    });
+
+    tVote?.addEventListener("click", async (e) => {
+      const btn = e.target.closest(".vote-btn");
+      if (!btn || !user?.profileCompleted) return;
+      const clicked = Number(btn.dataset.vote);
+      const current = btn.classList.contains("is-on") ? clicked : 0;
+      const other = tVote.querySelector(".vote-btn.is-on");
+      const cur = other ? Number(other.dataset.vote) : 0;
+      const value = nextVote(cur, clicked);
+      try {
+        const res = await applyVote("thread", t.id, value);
+        paintVote(tVote, res);
+      } catch (err) {
+        status.textContent = err.message || "Could not vote";
+      }
+    });
 
     const replySection = document.getElementById("reply-section");
     const replyGate = document.getElementById("reply-gate");

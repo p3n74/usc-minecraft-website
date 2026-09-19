@@ -1,5 +1,6 @@
 import { api, escapeHtml } from "../api.js";
 import { mountAuthSlot } from "../auth-ui.js";
+import { mountCommandPalette } from "../palette.js";
 
 const list = document.getElementById("category-list");
 const status = document.getElementById("forum-status");
@@ -9,7 +10,8 @@ function setStatus(msg) {
 }
 
 async function main() {
-  await mountAuthSlot();
+  const user = await mountAuthSlot();
+  await mountCommandPalette(user);
   setStatus("Loading categories…");
   try {
     const data = await api("/api/categories");
