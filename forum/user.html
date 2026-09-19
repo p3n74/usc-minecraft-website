@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Member — USC Minecraft Forum</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;700;800;900&family=Pixelify+Sans:wght@500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="logo" href="/" aria-label="USC Minecraft home">
+        <span class="logo-cube" aria-hidden="true"></span>
+        <span class="logo-text">USC</span>
+      </a>
+      <nav class="topnav" aria-label="Page">
+        <a href="/">Home</a>
+        <a href="/forum/" aria-current="page">Forum</a>
+        <a href="/data-policy.html">Data</a>
+        <a href="/privacy-policy.html">Privacy</a>
+      </nav>
+      <div id="auth-slot" class="auth-slot"></div>
+    </header>
+
+    <main class="forum-page">
+      <div class="band band-dark">
+        <div class="band-inner">
+          <p class="forum-crumb"><a href="/forum/">Forum</a></p>
+          <h1 id="user-title" class="band-title">Member</h1>
+        </div>
+      </div>
+      <div class="band-inner forum-body">
+        <div id="forum-status" class="forum-status" role="status"></div>
+        <article id="user-card" class="panel forum-user-card" hidden>
+          <p><strong>Display name:</strong> <span id="user-display"></span></p>
+          <p><strong>Username:</strong> <span id="user-username"></span></p>
+          <p id="user-email-row" hidden>
+            <strong>Email:</strong> <span id="user-email"></span>
+          </p>
+        </article>
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <div class="footer-inner">
+        <span class="footer-brand">USC Minecraft</span>
+      </div>
+    </footer>
+
+    <script type="module" src="/src/forum/pages/user.js"></script>
+  </body>
+</html>

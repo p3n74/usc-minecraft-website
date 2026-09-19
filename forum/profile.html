@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Your profile — USC Minecraft Forum</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;700;800;900&family=Pixelify+Sans:wght@500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="logo" href="/" aria-label="USC Minecraft home">
+        <span class="logo-cube" aria-hidden="true"></span>
+        <span class="logo-text">USC</span>
+      </a>
+      <nav class="topnav" aria-label="Page">
+        <a href="/">Home</a>
+        <a href="/forum/" aria-current="page">Forum</a>
+        <a href="/data-policy.html">Data</a>
+        <a href="/privacy-policy.html">Privacy</a>
+      </nav>
+      <div id="auth-slot" class="auth-slot"></div>
+    </header>
+
+    <main class="forum-page">
+      <div class="band band-dark">
+        <div class="band-inner">
+          <h1 class="band-title">Your profile</h1>
+          <p class="band-lede">Update how you appear on the forum.</p>
+        </div>
+      </div>
+      <div class="band-inner forum-body">
+        <div id="forum-status" class="forum-status" role="status"></div>
+        <form id="profile-form" class="forum-compose panel" hidden>
+          <p class="forum-hint">
+            Account email: <strong id="profile-email"></strong>
+            <span class="forum-muted">(private unless you opt in below)</span>
+          </p>
+          <p class="forum-hint">
+            Google name: <strong id="profile-google-name"></strong>
+          </p>
+
+          <label class="consent-check">
+            <input type="checkbox" id="hide-google-name" name="hideGoogleName" />
+            <span>Hide my Google name and use my username publicly</span>
+          </label>
+
+          <label class="forum-label">
+            Username
+            <input
+              id="profile-username"
+              name="username"
+              type="text"
+              maxlength="24"
+              minlength="3"
+              pattern="[A-Za-z0-9_]{3,24}"
+              required
+            />
+          </label>
+
+          <label class="consent-check">
+            <input type="checkbox" id="email-public" name="emailPublic" />
+            <span>Show my email on my public profile</span>
+          </label>
+
+          <button type="submit" class="btn btn-green">Save changes</button>
+        </form>
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <div class="footer-inner">
+        <span class="footer-brand">USC Minecraft</span>
+      </div>
+    </footer>
+
+    <script type="module" src="/src/forum/pages/profile.js"></script>
+  </body>
+</html>

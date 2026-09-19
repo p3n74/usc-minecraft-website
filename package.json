@@ -1,0 +1,26 @@
+{
+  "name": "usc-minecraft-website",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "dev:server": "node --watch --env-file=.env server/index.js",
+    "build": "vite build",
+    "start": "node server/index.js",
+    "preview": "vite preview",
+    "test:privacy": "node server/privacy.test.js"
+  },
+  "devDependencies": {
+    "vite": "^6.3.5"
+  },
+  "dependencies": {
+    "@hono/node-server": "^2.1.1",
+    "arctic": "^3.7.0",
+    "hono": "^4.11.3",
+    "pg": "^8.23.0"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

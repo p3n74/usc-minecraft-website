@@ -1,0 +1,14 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: usc
+      POSTGRES_PASSWORD: usc
+      POSTGRES_DB: usc_forum
+    ports:
+      - "5432:5432"
+    volumes:
+      - usc_forum_pg:/var/lib/postgresql/data
+
+volumes:
+  usc_forum_pg:

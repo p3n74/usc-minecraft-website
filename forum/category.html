@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Category — USC Minecraft Forum</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;700;800;900&family=Pixelify+Sans:wght@500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="logo" href="/" aria-label="USC Minecraft home">
+        <span class="logo-cube" aria-hidden="true"></span>
+        <span class="logo-text">USC</span>
+      </a>
+      <nav class="topnav" aria-label="Page">
+        <a href="/">Home</a>
+        <a href="/forum/" aria-current="page">Forum</a>
+        <a href="/data-policy.html">Data</a>
+        <a href="/privacy-policy.html">Privacy</a>
+      </nav>
+      <div id="auth-slot" class="auth-slot"></div>
+    </header>
+
+    <main class="forum-page">
+      <div class="band band-dark">
+        <div class="band-inner">
+          <p class="forum-crumb"><a href="/forum/">Forum</a></p>
+          <h1 id="cat-title" class="band-title">Category</h1>
+          <p id="cat-desc" class="band-lede"></p>
+          <p id="cat-actions" class="forum-actions" hidden>
+            <a id="new-thread-link" class="btn btn-green" href="#">New thread</a>
+          </p>
+        </div>
+      </div>
+      <div class="band-inner forum-body">
+        <div id="forum-status" class="forum-status" role="status"></div>
+        <ul id="thread-list" class="forum-thread-list"></ul>
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <div class="footer-inner">
+        <span class="footer-brand">USC Minecraft</span>
+      </div>
+    </footer>
+
+    <script type="module" src="/src/forum/pages/category.js"></script>
+  </body>
+</html>

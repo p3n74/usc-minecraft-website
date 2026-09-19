@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Thread — USC Minecraft Forum</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;700;800;900&family=Pixelify+Sans:wght@500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="logo" href="/" aria-label="USC Minecraft home">
+        <span class="logo-cube" aria-hidden="true"></span>
+        <span class="logo-text">USC</span>
+      </a>
+      <nav class="topnav" aria-label="Page">
+        <a href="/">Home</a>
+        <a href="/forum/" aria-current="page">Forum</a>
+        <a href="/data-policy.html">Data</a>
+        <a href="/privacy-policy.html">Privacy</a>
+      </nav>
+      <div id="auth-slot" class="auth-slot"></div>
+    </header>
+
+    <main class="forum-page">
+      <div class="band band-dark">
+        <div class="band-inner">
+          <p class="forum-crumb">
+            <a href="/forum/">Forum</a>
+            <span aria-hidden="true"> · </span>
+            <a id="crumb-cat" href="#">Category</a>
+          </p>
+          <h1 id="thread-title" class="band-title">Thread</h1>
+          <p id="thread-meta" class="forum-meta"></p>
+        </div>
+      </div>
+      <div class="band-inner forum-body">
+        <div id="forum-status" class="forum-status" role="status"></div>
+        <ol id="post-list" class="forum-post-list"></ol>
+
+        <section id="reply-section" class="forum-compose panel" hidden>
+          <h2>Reply</h2>
+          <form id="reply-form">
+            <label class="forum-label">
+              <span class="sr-only">Your reply</span>
+              <textarea
+                id="reply-body"
+                name="body"
+                rows="5"
+                maxlength="10000"
+                required
+                placeholder="Write a reply…"
+              ></textarea>
+            </label>
+            <button type="submit" class="btn btn-green">Post reply</button>
+          </form>
+        </section>
+        <p id="reply-gate" class="forum-gate" hidden></p>
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <div class="footer-inner">
+        <span class="footer-brand">USC Minecraft</span>
+      </div>
+    </footer>
+
+    <script type="module" src="/src/forum/pages/thread.js"></script>
+  </body>
+</html>
