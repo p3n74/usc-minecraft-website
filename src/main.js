@@ -157,34 +157,6 @@ document.getElementById("hero-copy")?.addEventListener("click", async () => {
   }
 });
 
-async function initStatusChip() {
-  const chip = document.getElementById("status-chip");
-  if (!chip) return;
-  const dot = document.getElementById("status-dot");
-  const players = document.getElementById("status-players");
-  const version = document.getElementById("status-version");
-
-  async function refresh() {
-    try {
-      const res = await fetch("/api/status", { credentials: "include" });
-      if (!res.ok) throw new Error("status");
-      const data = await res.json();
-      dot.className = `status-dot ${data.online ? "is-online" : "is-offline"}`;
-      players.textContent = data.online
-        ? `${data.players?.online ?? 0} / ${data.players?.max ?? 0} online`
-        : "World offline";
-      version.textContent = data.version || "";
-    } catch {
-      dot.className = "status-dot is-unknown";
-      players.textContent = "Status unavailable";
-      version.textContent = "";
-    }
-  }
-
-  refresh();
-  setInterval(refresh, 30000);
-}
-
 function initReveal() {
   const nodes = document.querySelectorAll(".reveal");
   if (!nodes.length) return;
@@ -207,6 +179,5 @@ function initReveal() {
 }
 
 initConsent();
-initStatusChip();
 initReveal();
 mountCommandPalette();

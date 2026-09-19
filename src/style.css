@@ -230,49 +230,6 @@ a:hover {
   border-radius: 4px;
 }
 
-.hero-status {
-  margin-top: 1.1rem;
-}
-
-.status-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.55rem;
-  padding: 0.35rem 0.75rem;
-  background: rgba(0, 0, 0, 0.45);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  font-weight: 800;
-  font-size: 0.85rem;
-  letter-spacing: 0.03em;
-}
-
-.status-dot {
-  width: 0.55rem;
-  height: 0.55rem;
-  border-radius: 50%;
-  background: #888;
-  box-shadow: 0 0 0 3px rgba(136, 136, 136, 0.2);
-}
-
-.status-dot.is-online {
-  background: #5ae02a;
-  box-shadow: 0 0 0 3px rgba(90, 224, 42, 0.22);
-}
-
-.status-dot.is-offline {
-  background: #e05a5a;
-  box-shadow: 0 0 0 3px rgba(224, 90, 90, 0.22);
-}
-
-.status-dot.is-unknown {
-  background: #c8a44a;
-}
-
-#status-version {
-  color: var(--mc-muted);
-  font-weight: 700;
-}
-
 .btn-ghost {
   background: rgba(255, 255, 255, 0.06);
   color: #fff;

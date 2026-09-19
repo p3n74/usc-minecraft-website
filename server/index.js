@@ -6,7 +6,6 @@ import { join } from "node:path";
 import { migrate } from "./db.js";
 import { registerAuthRoutes } from "./auth.js";
 import { registerForumRoutes } from "./forum.js";
-import { fetchServerStatus } from "./status.js";
 
 const PORT = Number(process.env.PORT || 3000);
 const STATIC_ROOT = process.env.STATIC_ROOT || "dist";
@@ -47,16 +46,6 @@ async function main() {
   });
 
   app.get("/api/health", (c) => c.json({ ok: true }));
-
-  app.get("/api/status", async (c) => {
-    const host =
-      process.env.VITE_JAVA_ADDRESS ||
-      process.env.SERVER_ADDRESS ||
-      "mc-direct.citadel-codex.com";
-    const data = await fetchServerStatus(String(host).replace(/^['"]|['"]$/g, ""));
-    c.header("Cache-Control", "public, max-age=10");
-    return c.json(data);
-  });
 
   registerAuthRoutes(app);
   registerForumRoutes(app);
