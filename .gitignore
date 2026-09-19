@@ -7,3 +7,6 @@ dist
 !.env.example
 Dockerfile.coolify
 .coolify-db.json
+.coolify-app-v2.txt
+.coolify-repo.txt
+.deploy.tgz
