@@ -609,9 +609,18 @@ a:hover {
   font-weight: 600;
 }
 
+.join-label {
+  margin: 1rem 0 0.35rem;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--mc-muted);
+}
+
 .address {
   display: block;
-  margin: 1rem 0;
+  margin: 0 0 0.75rem;
   padding: 0.85rem 0.9rem;
   background: #0d0d0d;
   border: 2px solid #333;
@@ -619,6 +628,13 @@ a:hover {
   font-size: 0.9rem;
   word-break: break-all;
   color: #9fef7a;
+}
+
+.join-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  margin-top: 0.35rem;
 }
 
 .rule-grid {

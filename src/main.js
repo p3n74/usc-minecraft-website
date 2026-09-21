@@ -1,45 +1,19 @@
 import { mountCommandPalette } from "./forum/palette.js";
 
-const DEFAULTS = {
-  server: "mc-direct.citadel-codex.com",
-  bedrock: "bedrock.citadel-codex.com",
-};
-
-function readConfig() {
-  const runtime = typeof window !== "undefined" ? window.__USC_CONFIG__ : null;
-  return {
-    server:
-      (runtime && (runtime.server || runtime.java)) ||
-      import.meta.env.VITE_JAVA_ADDRESS ||
-      DEFAULTS.server,
-    bedrock:
-      (runtime && runtime.bedrock) ||
-      import.meta.env.VITE_BEDROCK_ADDRESS ||
-      DEFAULTS.bedrock,
-  };
-}
-
-function fillAddresses() {
-  const { server, bedrock } = readConfig();
-  const javaEl = document.getElementById("server-address");
-  const bedrockEl = document.getElementById("bedrock-address");
-  if (javaEl) javaEl.textContent = String(server).trim() || DEFAULTS.server;
-  if (bedrockEl)
-    bedrockEl.textContent = String(bedrock).trim() || DEFAULTS.bedrock;
-}
+const JAVA_ADDRESS = "mc-direct.citadel-codex.com";
+const BEDROCK_ADDRESS = "bedrock.citadel-codex.com";
+const BEDROCK_PORT = "28375";
 
 function showUnlocked() {
   const gate = document.getElementById("consent-gate");
   const unlocked = document.getElementById("join-unlocked");
   if (gate) gate.hidden = true;
   if (unlocked) unlocked.hidden = false;
-  fillAddresses();
 }
 
 function initConsent() {
   const gate = document.getElementById("consent-gate");
   if (!gate) {
-    fillAddresses();
     return;
   }
 
@@ -107,9 +81,9 @@ async function copyText(text) {
 }
 
 async function copyJoinAddress({ kind = "java", reveal = false } = {}) {
-  const { server, bedrock } = readConfig();
-  const text = kind === "bedrock" ? bedrock : server;
-  await copyText(String(text).trim());
+  const text =
+    kind === "bedrock" ? `${BEDROCK_ADDRESS}:${BEDROCK_PORT}` : JAVA_ADDRESS;
+  await copyText(text);
   const unlocked = document.getElementById("join-unlocked");
   if (reveal && unlocked && !unlocked.hidden) {
     showToast("Address copied");

@@ -1,33 +1,12 @@
 import { serve } from "@hono/node-server";
 import { serveStatic } from "@hono/node-server/serve-static";
 import { Hono } from "hono";
-import { existsSync, mkdirSync, writeFileSync } from "node:fs";
-import { join } from "node:path";
 import { migrate } from "./db.js";
 import { registerAuthRoutes } from "./auth.js";
 import { registerForumRoutes } from "./forum.js";
 
 const PORT = Number(process.env.PORT || 3000);
 const STATIC_ROOT = process.env.STATIC_ROOT || "dist";
-
-function writeRuntimeConfig() {
-  const clean = (s, fallback) => {
-    const raw = String(s || "").trim().replace(/^['"]|['"]$/g, "");
-    return raw || fallback;
-  };
-  const server = clean(
-    process.env.VITE_JAVA_ADDRESS || process.env.SERVER_ADDRESS,
-    "mc-direct.citadel-codex.com"
-  );
-  const bedrock = clean(
-    process.env.VITE_BEDROCK_ADDRESS || process.env.BEDROCK_ADDRESS,
-    "bedrock.citadel-codex.com"
-  );
-  const escape = (s) => String(s).replace(/\\/g, "\\\\").replace(/"/g, '\\"');
-  const body = `window.__USC_CONFIG__={server:"${escape(server)}",java:"${escape(server)}",bedrock:"${escape(bedrock)}"};\n`;
-  if (!existsSync(STATIC_ROOT)) mkdirSync(STATIC_ROOT, { recursive: true });
-  writeFileSync(join(STATIC_ROOT, "config.js"), body, "utf8");
-}
 
 async function main() {
   if (!process.env.DATABASE_URL) {
@@ -36,7 +15,6 @@ async function main() {
   }
 
   await migrate();
-  writeRuntimeConfig();
 
   const app = new Hono();
 

@@ -53,8 +53,6 @@ STATIC_ROOT=dist COOKIE_SECURE=false npm start
 | `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | Google Cloud OAuth Web client |
 | `GOOGLE_REDIRECT_URI` | `https://usc.citadel-codex.com/api/auth/google/callback` |
 | `PUBLIC_ORIGIN` | `https://usc.citadel-codex.com` |
-| `VITE_JAVA_ADDRESS` | Java join address for `config.js` |
-| `VITE_BEDROCK_ADDRESS` | Bedrock join address for `config.js` |
 | `COOKIE_SECURE` | `true` |
 | `PORT` | `3000` |
 
